@@ -1,0 +1,26 @@
+name: gate-probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe collaborator permission levels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const users = ['lazyhacker6', 'Ety60'];
+            for (const u of users) {
+              try {
+                const r = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  username: u,
+                });
+                console.log(`${u} -> HTTP ${r.status} permission=${r.data.permission}  (write gate => ${['admin','write'].includes(r.data.permission)})`);
+              } catch (e) {
+                console.log(`${u} -> ERR HTTP ${e.status} message="${e.message}"  (action throws: Failed to check permissions)`);
+              }
+            }
